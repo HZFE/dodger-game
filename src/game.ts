@@ -1,5 +1,5 @@
 import BulletSprite from './sprite/BulletSprite';
-import { BackgroundColor, BulletRadiusRange, BulletCount, CountFont } from './config';
+import { BackgroundColor, BulletRadiusRange, BulletCount, CountFont, PlayerHeight } from './config';
 import PlayerSprite from './sprite/PlayreSprite';
 
 export default class Game {
@@ -14,6 +14,8 @@ export default class Game {
   private player: PlayerSprite;
   /** 游戏进行的秒数 */
   public second: number = 0;
+  /** 是否移动端 */
+  public isMobile: boolean;
   /** 游戏结束时回调 */
   onGameOver?: (count: number) => void;
 
@@ -22,8 +24,10 @@ export default class Game {
     options: {
       width: number;
       height: number;
+      isMobile?: boolean;
     }
   ) {
+    this.isMobile = options.isMobile;
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width = this.width = options.width * dpr;
     this.canvas.height = this.height = options.height * dpr;
@@ -46,6 +50,7 @@ export default class Game {
       this.ctx,
       this.width / 2,
       this.height / 2,
+      this.isMobile ? 'touch' : 'keyboard',
     );
 
     this.player.startListener();
@@ -116,6 +121,13 @@ export default class Game {
   update() {
     // 更新玩家位置
     this.player.update();
+
+    // 不允许超出游戏屏幕边缘
+    const edge = PlayerHeight / 2;
+    if (this.player.x < edge) this.player.x = edge;
+    if (this.player.y < edge) this.player.y = edge;
+    if (this.player.x > this.width - edge) this.player.x = this.width - edge;
+    if (this.player.y > this.height - edge) this.player.y = this.height - edge;
 
     this.bullets = this.bullets.filter(bullet => {
       // 更新子弹位置

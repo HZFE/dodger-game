@@ -20,25 +20,42 @@ export default class PlayerSprite extends Sprite {
   angle: number = 0;
   /** 玩家正在前进的方向 */
   direction: number = 0;
+  /** 手指按住的地方 */
+  touchPos?: { x: number, y: number };
 
   constructor(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
+    private controlType: 'keyboard' | 'touch' = 'keyboard'
   ) {
     super(ctx, x, y);
   }
 
   /** 开始监听用户输入 */
   public startListener() {
-    window.addEventListener('keydown', this.handleKeyDown)
-    window.addEventListener('keyup', this.handleKeyUp)
+    if (this.controlType === 'keyboard') {
+      window.addEventListener('keydown', this.handleKeyDown);
+      window.addEventListener('keyup', this.handleKeyUp);
+    } else if (this.controlType === 'touch') {
+      window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+      window.addEventListener('touchmove', this.handleTouchStart, { passive: false });
+      window.addEventListener('touchend', this.handleTouchEnd);
+      window.addEventListener('touchcancel', this.handleTouchEnd);
+    }
   }
 
   /** 停止监听用户输入 */
   public stopListener() {
-    window.removeEventListener('keydown', this.handleKeyDown)
-    window.removeEventListener('keyup', this.handleKeyUp)
+    if (this.controlType === 'keyboard') {
+      window.removeEventListener('keydown', this.handleKeyDown);
+      window.removeEventListener('keyup', this.handleKeyUp);
+    } else if (this.controlType === 'touch') {
+      window.removeEventListener('touchstart', this.handleTouchStart);
+      window.removeEventListener('touchmove', this.handleTouchStart);
+      window.removeEventListener('touchend', this.handleTouchEnd);
+      window.removeEventListener('touchcancel', this.handleTouchEnd);
+    }
   }
 
   /** 处理玩家按下键盘 */
@@ -68,21 +85,37 @@ export default class PlayerSprite extends Sprite {
     switch (e.key) {
       case 'w':
       case 'ArrowUp':
-        this.direction ^= Direction.Up;
+        this.direction &= ~Direction.Up;
         break;
       case 's':
       case 'ArrowDown':
-        this.direction ^= Direction.Down;
+        this.direction &= ~Direction.Down;
         break;
       case 'a':
       case 'ArrowLeft':
-        this.direction ^= Direction.Left;
+        this.direction &= ~Direction.Left;
         break;
       case 'd':
       case 'ArrowRight':
-        this.direction ^= Direction.Right;
+        this.direction &= ~Direction.Right;
         break;
     }
+  }
+
+  /** 处理手指触摸位置 */
+  handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    const event = e.targetTouches[0];
+    const dpr = window.devicePixelRatio || 1;
+    this.touchPos = {
+      x: event.pageX * dpr,
+      y: event.pageY * dpr,
+    }
+  }
+
+  /** 触摸结束 */
+  handleTouchEnd = () => {
+    this.touchPos = null;
   }
 
   /** 绘制玩家 */
@@ -127,45 +160,58 @@ export default class PlayerSprite extends Sprite {
 
   /** 更新玩家位置 */
   public update() {
-    // 按方向前进
-    if (this.direction & Direction.Up) {
-      this.y -= PlayerStep;
-    }
-    if (this.direction & Direction.Down) {
-      this.y += PlayerStep;
-    }
-    if (this.direction & Direction.Left) {
-      this.x -= PlayerStep;
-    }
-    if (this.direction & Direction.Right) {
-      this.x += PlayerStep;
-    }
-    // 按方向更新旋转角度
-    switch (this.direction) {
-      case Direction.Up:
-        this.angle = 0;
-        break;
-      case Direction.Down:
-        this.angle = Math.PI;
-        break;
-      case Direction.Left:
-        this.angle = Math.PI / 2 * 3;
-        break;
-      case Direction.Right:
-        this.angle = Math.PI / 2;
-        break;
-      case Direction.Left | Direction.Up:
-        this.angle = -Math.PI / 4;
-        break;
-      case Direction.Left | Direction.Down:
-        this.angle = -Math.PI / 4 * 3;
-        break;
-      case Direction.Right | Direction.Up:
-        this.angle = Math.PI / 4;
-        break;
-      case Direction.Right | Direction.Down:
-        this.angle = Math.PI / 4 * 3;
-        break;
+    if (this.controlType === 'touch') {
+      if (!this.touchPos) return;
+      // 获取手指按住的与玩家的角度
+      const angle = Math.atan2(this.touchPos.y - this.y, this.touchPos.x - this.x);
+
+      // 根据角度将距离分为水平距离和垂直距离
+      this.x += PlayerStep * Math.cos(angle);
+      this.y += PlayerStep * Math.sin(angle);
+
+      // 因为玩家的角度是朝上的，而正常坐标轴是朝右的，估每次旋转都加上 90°
+      this.angle = angle + Math.PI / 2;
+    } else {
+      // 按方向前进
+      if (this.direction & Direction.Up) {
+        this.y -= PlayerStep;
+      }
+      if (this.direction & Direction.Down) {
+        this.y += PlayerStep;
+      }
+      if (this.direction & Direction.Left) {
+        this.x -= PlayerStep;
+      }
+      if (this.direction & Direction.Right) {
+        this.x += PlayerStep;
+      }
+      // 按方向更新旋转角度
+      switch (this.direction) {
+        case Direction.Up:
+          this.angle = 0;
+          break;
+        case Direction.Down:
+          this.angle = Math.PI;
+          break;
+        case Direction.Left:
+          this.angle = Math.PI / 2 * 3;
+          break;
+        case Direction.Right:
+          this.angle = Math.PI / 2;
+          break;
+        case Direction.Left | Direction.Up:
+          this.angle = -Math.PI / 4;
+          break;
+        case Direction.Left | Direction.Down:
+          this.angle = -Math.PI / 4 * 3;
+          break;
+        case Direction.Right | Direction.Up:
+          this.angle = Math.PI / 4;
+          break;
+        case Direction.Right | Direction.Down:
+          this.angle = Math.PI / 4 * 3;
+          break;
+      }
     }
   }
 
