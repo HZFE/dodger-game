@@ -29,7 +29,7 @@ export default class BulletSprite extends Sprite {
     const speed = BulletSpeedRange[1] - (
       ((this.r - BulletRadiusRange[0]) / (BulletRadiusRange[1] - BulletRadiusRange[0])) // 子弹半径在半径范围里的比例
       * (BulletSpeedRange[1] - BulletSpeedRange[0]) // 乘以速度的范围
-    ); // 再加上最低的速度
+    );
 
     // 子弹偏差后的结果位置
     const targetX = target.x + ((Math.random() * BulletOffset * 2) - BulletOffset);

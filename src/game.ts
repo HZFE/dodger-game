@@ -53,12 +53,15 @@ export default class Game {
       this.isMobile ? 'touch' : 'keyboard',
     );
 
+    // 初始化分数
+    this.second = 0;
+
     this.player.startListener();
 
 		const step = () => {
       if (!this.isStart) {
         this.render();
-        // GameOver
+        this.stop();
         this?.onGameOver(this.count);
         return;
       }
@@ -77,7 +80,6 @@ export default class Game {
     this.isStart = false;
     this.player?.stopListener();
     this.bullets.length = 0;
-    this.second = 0;
   }
 
   /** 生成一个子弹 */
@@ -113,8 +115,8 @@ export default class Game {
     this.ctx.clearRect(0, 0, this.width, this.height);
     this.renderBackground();
     this.renderCount();
-    this.player.render();
     this.bullets.forEach(bullet => bullet.render());
+    this.player.render();
   }
 
   /** 更新游戏 */

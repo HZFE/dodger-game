@@ -1,4 +1,13 @@
-import { PlayerColor, PlayerHeight, PlayerStep } from '../config';
+import {
+  PlayerColor,
+  PlayerHeight,
+  PlayerStep,
+  JoystickOffset,
+  JoystickRadius,
+  JoystickInnerRadius,
+  JoystickInnerColor,
+  JoystickBgcColor,
+} from '../config';
 import BulletSprite from './BulletSprite';
 import Sprite from './Sprite';
 
@@ -20,8 +29,10 @@ export default class PlayerSprite extends Sprite {
   angle: number = 0;
   /** 玩家正在前进的方向 */
   direction: number = 0;
-  /** 手指按住的地方 */
+  /** 手指按住的位置 */
   touchPos?: { x: number, y: number };
+  /** 虚拟摇杆的位置 */
+  joystickPos?: { x: number, y: number }
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -30,6 +41,9 @@ export default class PlayerSprite extends Sprite {
     private controlType: 'keyboard' | 'touch' = 'keyboard'
   ) {
     super(ctx, x, y);
+    if (this.controlType === 'touch') {
+      this.joystickPos = { x: JoystickOffset + JoystickRadius, y: this.ctx.canvas.height - JoystickOffset - JoystickRadius };
+    }
   }
 
   /** 开始监听用户输入 */
@@ -122,15 +136,52 @@ export default class PlayerSprite extends Sprite {
   public render() {
     this.ctx.fillStyle = this.color;
 
-    // 旋转角度
     this.ctx.save();
 
     // 绘制玩家
     this.getPlayerPath();
     this.ctx.fill();
 
-    // 将旋转复位
+    // 如果为触摸控制，则加入虚拟摇杆
+    if (this.controlType === 'touch') {
+      this.renderVirtualJoystick();
+    }
+
     this.ctx.restore();
+  }
+
+  /** 触摸位置是否在摇杆中心位置 */
+  get touchInJoystickInner() {
+    return Math.sqrt((this.touchPos.y - this.joystickPos.y) ** 2 + (this.touchPos.x - this.joystickPos.x) ** 2) <= JoystickInnerRadius;
+  }
+
+  /** 渲染虚拟摇杆 */
+  private renderVirtualJoystick() {
+    if (!this.joystickPos) return;
+
+    // 绘制摇杆背景
+    this.ctx.fillStyle = JoystickBgcColor;
+    this.ctx.beginPath();
+    this.ctx.arc(this.joystickPos.x, this.joystickPos.y, JoystickRadius, 0, Math.PI * 2, true);
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    // 绘制摇杆
+    this.ctx.fillStyle = JoystickInnerColor;
+
+    // 默认摇杆在中心位置
+    let x = this.joystickPos.x;
+    let y = this.joystickPos.y;
+
+    // 如果有玩家触碰屏幕切触摸范围不在摇杆中心范围，则根据触碰位置与摇杆中心的角度绘制摇杆
+    if (this.touchPos && !this.touchInJoystickInner) {
+      x += (JoystickRadius - JoystickInnerRadius) * Math.cos(this.angle - Math.PI / 2);
+      y += (JoystickRadius - JoystickInnerRadius) * Math.sin(this.angle - Math.PI / 2);
+    }
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, JoystickInnerRadius, 0, Math.PI * 2, true);
+    this.ctx.closePath();
+    this.ctx.fill();
   }
 
   /** 得到玩家图形的路径 */
@@ -161,9 +212,9 @@ export default class PlayerSprite extends Sprite {
   /** 更新玩家位置 */
   public update() {
     if (this.controlType === 'touch') {
-      if (!this.touchPos) return;
-      // 获取手指按住的与玩家的角度
-      const angle = Math.atan2(this.touchPos.y - this.y, this.touchPos.x - this.x);
+      if (!this.touchPos || this.touchInJoystickInner) return;
+      // 获取手指按住的与摇杆中心的角度
+      const angle = Math.atan2(this.touchPos.y - this.joystickPos.y, this.touchPos.x - this.joystickPos.x);
 
       // 根据角度将距离分为水平距离和垂直距离
       this.x += PlayerStep * Math.cos(angle);
