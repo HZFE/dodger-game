@@ -84,9 +84,6 @@ export default class Game {
 
   /** 生成一个子弹 */
   addNewBullet() {
-    // 先假设目标在屏幕正中间
-    const target = { x: this.width / 2, y: this.height / 2 };
-
     // 生成一个随机的子弹半径
     const r = (Math.random() * (BulletRadiusRange[1] - BulletRadiusRange[0])) + BulletRadiusRange[0];
 
@@ -103,7 +100,7 @@ export default class Game {
       x,
       y,
       r,
-      target,
+      this.player,
     )
 
     this.bullets.push(bullet);
