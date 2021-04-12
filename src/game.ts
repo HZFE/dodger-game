@@ -58,7 +58,7 @@ export default class Game {
 
     this.player.startListener();
 
-		const step = () => {
+    const step = () => {
       if (!this.isStart) {
         this.render();
         this.stop();
@@ -67,12 +67,12 @@ export default class Game {
       }
       // 记录当前游戏时间
       this.second += 16.67;
-			this.render();
+      this.render();
       this.update();
-			requestAnimationFrame(step);
-		};
+      requestAnimationFrame(step);
+    };
     this.isStart = true;
-		requestAnimationFrame(step);
+    requestAnimationFrame(step);
   }
 
   /** 结束游戏 */
