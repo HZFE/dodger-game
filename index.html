@@ -21,10 +21,49 @@
     #app {
       box-shadow: 0 0 10px 2px rgba(0, 0, 0, .16);
     }
+    .container-footer {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom) + 30px);
+      left: 0;
+      text-align: center;
+      right: 0;
+      color: #333;
+    }
+    .container-footer .copyright {
+      font-weight: lighter;
+      font-size: 10px;
+    }
+    .container-footer .links a:not(:last-child):after {
+      position: relative;
+      content: "·";
+      left: 3px;
+      margin-right: 5px;
+    }
+    .container-footer .links {
+      margin-left: 1ex;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .container-footer .links a {
+      text-decoration: none;
+      color: #b78775;
+      font-weight: 400;
+    }
   </style>
 </head>
 <body>
   <canvas id="app"></canvas>
+  <div class="container-footer">
+    <p class="copyright">
+      <span class="no-select">© 2016 - 2021</span>
+      hzfe.org
+      <span class="links">
+        <a href="https://mp.weixin.qq.com/s/fmNA4isEAQUyscWbf3BPJQ">关于我们</a>
+      </span>
+    </p>
+  </div>
   <script src="./src/index.ts"></script>
 </body>
 </html>
