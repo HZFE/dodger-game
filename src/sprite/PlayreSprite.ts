@@ -41,6 +41,7 @@ export default class PlayerSprite extends Sprite {
     private controlType: 'keyboard' | 'touch' = 'keyboard'
   ) {
     super(ctx, x, y);
+    // 虚拟摇杆起始位置
     if (this.controlType === 'touch') {
       this.joystickPos = { x: JoystickOffset + JoystickRadius, y: this.ctx.canvas.height - JoystickOffset - JoystickRadius };
     }
@@ -53,7 +54,7 @@ export default class PlayerSprite extends Sprite {
       window.addEventListener('keyup', this.handleKeyUp);
     } else if (this.controlType === 'touch') {
       window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
-      window.addEventListener('touchmove', this.handleTouchStart, { passive: false });
+      window.addEventListener('touchmove', this.handleTouchMove, { passive: false });
       window.addEventListener('touchend', this.handleTouchEnd);
       window.addEventListener('touchcancel', this.handleTouchEnd);
     }
@@ -66,7 +67,7 @@ export default class PlayerSprite extends Sprite {
       window.removeEventListener('keyup', this.handleKeyUp);
     } else if (this.controlType === 'touch') {
       window.removeEventListener('touchstart', this.handleTouchStart);
-      window.removeEventListener('touchmove', this.handleTouchStart);
+      window.removeEventListener('touchmove', this.handleTouchMove);
       window.removeEventListener('touchend', this.handleTouchEnd);
       window.removeEventListener('touchcancel', this.handleTouchEnd);
     }
@@ -118,6 +119,16 @@ export default class PlayerSprite extends Sprite {
 
   /** 处理手指触摸位置 */
   handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    const event = e.targetTouches[0];
+    const dpr = window.devicePixelRatio || 1;
+    this.joystickPos = {
+      x: event.pageX * dpr,
+      y: event.pageY * dpr,
+    }
+  }
+
+  handleTouchMove = (e: TouchEvent) => {
     e.preventDefault();
     const event = e.targetTouches[0];
     const dpr = window.devicePixelRatio || 1;
