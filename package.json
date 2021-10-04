@@ -5,12 +5,13 @@
   "main": "index.html",
   "scripts": {
     "dev": "parcel index.html",
-    "build": "rm -rf docs/ && parcel build index.html -d docs/  --public-url ./"
+    "build": "rimraf docs && parcel build index.html -d docs/  --public-url ./"
   },
   "author": "NightCat",
   "license": "ISC",
   "devDependencies": {
     "parcel-bundler": "^1.12.5",
+    "rimraf": "^3.0.2",
     "typescript": "^4.2.4"
   },
   "dependencies": {
